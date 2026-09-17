@@ -2,13 +2,14 @@
 # Pour trouver votre UUID, tapez la commande 'lsblk -f' dans le terminal de votre NAS,
 # ou consultez l'interface OMV > Stockage > Systèmes de fichiers.
 [Unit]
-Description=Dashboard Web Monitoring Climatique
+Description=Script de monitoring climatique Arduino
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /srv/dev-disk-by-uuid-VOTRE_UUID_ICI/monitoring/dashboard.py
-WorkingDirectory=/srv/dev-disk-by-uuid-VOTRE_UUID_ICI/monitoring
+ExecStart=/usr/bin/python3 /srv/dev-disk-by-uuid-VOTRE_UUID/monitoring/monitor_climat.py
+WorkingDirectory=/srv/dev-disk-by-uuid-VOTRE_UUID/monitoring
 Restart=always
+RestartSec=30
 User=root
 
 [Install]

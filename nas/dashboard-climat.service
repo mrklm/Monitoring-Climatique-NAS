@@ -1,0 +1,13 @@
+[Unit]
+Description=Dashboard Web Monitoring Climatique
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /srv/dev-disk-by-uuid-VOTRE_UUID/monitoring/dashboard.py
+WorkingDirectory=/srv/dev-disk-by-uuid-VOTRE_UUID/monitoring
+Restart=always
+RestartSec=30
+User=root
+
+[Install]
+WantedBy=multi-user.target

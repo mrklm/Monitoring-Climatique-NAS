@@ -1,9 +1,8 @@
-
 # 🌡️ Monitoring Climatique NAS
 
-Un système complet et robuste de surveillance de la température et de l'humidité, connecté à un NAS OpenMediaVault (OMV). Ce projet combine un capteur Arduino, un stockage sécurisé sur RAID et un tableau de bord web personnalisé avec thèmes dynamiques et alertes.
+Un système complet et robuste de surveillance de la température et de l'humidité, connecté à un NAS OpenMediaVault (OMV). Ce projet combine un capteur Arduino, un stockage sécurisé sur RAID et un tableau de bord web personnalisé avec thèmes dynamiques et alertes push.
 
-![License](https://img.shields.io/badge/License-MIT-blue)
+![License](https://img.shields.io/badge/License-GPLv3-blue)
 
 ## 📸 Aperçu du projet
 
@@ -26,7 +25,8 @@ Un système complet et robuste de surveillance de la température et de l'humidi
 - **Stockage robuste** : Enregistrement continu des données dans un fichier CSV sur le volume de stockage.
 - **Dashboard Web** : Interface légère en Flask + Chart.js, accessible sur tout le réseau local.
 - **Thèmes personnalisés** : 16 thèmes intégrés (Sombres, Clairs, et "Pouêt-Pouêt") avec sélection aléatoire au chargement.
-- **Système d'alerte** : Notification visuelle (cadre rouge pulsant) si l'humidité dépasse 80%.
+- **Alertes push** : Notifications en temps réel via **ntfy** (auto-hébergé) si les seuils de température ou d'humidité sont dépassés.
+- **Alerte "pas de données"** : Notification si aucune donnée n'est reçue depuis plus de 15 minutes (détection d'un capteur débranché ou d'un service planté).
 - **Démarrage automatique** : Gestion via `systemd` pour une exécution en arrière-plan au démarrage du NAS.
 
 ---
@@ -61,6 +61,7 @@ Un système complet et robuste de surveillance de la température et de l'humidi
 ## 💻 Installation
 
 ### Étape 1 : Configuration Arduino
+
 1. Installe les bibliothèques suivantes via le gestionnaire de bibliothèques de l'IDE Arduino :
    - `LiquidCrystal I2C` (par Frank de Brabander)
    - `SHT31` (par Rob Tillaart)
@@ -68,52 +69,101 @@ Un système complet et robuste de surveillance de la température et de l'humidi
 3. Ouvre le moniteur série à **9600 bauds** pour vérifier que les données `DATA,Temp,Hum` s'affichent.
 
 ### Étape 2 : Préparation du NAS (OpenMediaVault)
+
 1. Crée un dossier partagé nommé `monitoring` sur ton volume de stockage principal via l'interface OMV.
 2. Note le chemin réel de ce dossier. Tu peux le trouver via l'interface OMV ou en tapant `lsblk -f` dans le terminal.
 
 ### Étape 3 : Règle Udev (Port Série Fixe)
+
 Pour éviter que le nom du port Arduino (`/dev/ttyUSB0`) ne change au redémarrage :
+
 1. Copie le fichier `nas/99-arduino-nas.rules` dans `/etc/udev/rules.d/` sur le NAS.
 2. Recharge les règles et redémarre le service udev :
+
    ```bash
    sudo udevadm control --reload-rules
    sudo udevadm trigger
+   ```
+
+3. Vérifie que le symlink a bien été créé :
+
+   ```bash
+   ls -l /dev/arduino_nas
+   ```
+
+   → Doit afficher un lien vers `/dev/ttyUSB0` (ou `ttyACM0`).
+
+> 💡 Si le symlink n'apparaît pas, débranche/rebranche l'Arduino et relance `sudo udevadm trigger`.
 
 ---
 
-### Étape 4 : Préparation du script de dashboard
+### Étape 4 : Installation de ntfy (alertes push)
 
-Le repo fournit un générateur : `nas/setup_dashboard.py`. Il faut l'exécuter **avant** de démarrer le service dashboard, car il génère le fichier `dashboard.py` attendu par `nas/dashboard.service`.
+Le projet utilise **ntfy** pour l'envoi des notifications. Nous allons l'auto-héberger sur le NAS via Docker.
 
-```bash
-cd /srv/dev-disk-by-uuid-VOTRE_UUID_ICI/monitoring/
-python3 setup_dashboard.py
+#### 4.1 — Installation de Docker sur OMV
+
+Dans l'interface web OMV :
+
+1. **Système → omv-extras** : cocher le dépôt **Docker repo**, enregistrer.
+2. **Système → Plugins** : installer `openmediavault-compose`.
+3. **Services → Compose → Paramètres** :
+   - **Compose Files** : sélectionner un dossier partagé (ex. `docker-compose`)
+   - **Data** : sélectionner un dossier partagé (ex. `docker-data`)
+   - **Docker storage** : sélectionner un dossier partagé (ex. `docker`)
+   - Enregistrer et appliquer.
+
+> 💡 Il faut **trois dossiers partagés distincts** pour que le plugin Compose fonctionne correctement.
+
+#### 4.2 — Création du conteneur ntfy
+
+Aller dans **Services → Compose → Fichiers → Ajouter** :
+
+- **Nom** : `ntfy`
+- **Contenu** :
+
+```yaml
+services:
+  ntfy:
+    image: binwiederhier/ntfy
+    container_name: ntfy
+    command: serve
+    environment:
+      - TZ=Europe/Paris
+    volumes:
+      - CHANGE_TO_COMPOSE_DATA_PATH/ntfy/cache:/var/cache/ntfy
+      - CHANGE_TO_COMPOSE_DATA_PATH/ntfy/config:/etc/ntfy
+    ports:
+      - "8080:80"
+    restart: unless-stopped
 ```
 
-> 💡 Vérifiez ensuite que `dashboard.py` a bien été créé : `ls -l dashboard.py`
+Enregistrer, puis aller dans **Services → Compose → Services** et démarrer `ntfy`.
 
----
+#### 4.3 — Configuration du téléphone
 
-### Étape 5 : Installation des dépendances Python
+1. Installer l'application **ntfy** :
+   - [Android (Play Store)](https://play.google.com/store/apps/details?id=io.heckel.ntfy)
+   - [Android (F-Droid)](https://f-droid.org/packages/io.heckel.ntfy/)
+   - [iOS (App Store)](https://apps.apple.com/app/ntfy/id1625396347)
+2. Dans l'app, ajouter un serveur personnalisé : `http://IP-DU-NAS:8080`
+3. S'abonner à un topic, par exemple `mon-nas-climat-alerte`.
 
-En SSH sur le NAS :
+> ⚠️ Choisissez un nom de topic **long et difficile à deviner** si vous n'activez pas l'authentification, car il fait office de mot de passe.
+
+#### 4.4 — Test de la chaîne
+
+Depuis le NAS en SSH :
 
 ```bash
-# Outils de base (si non installés)
-sudo apt update
-sudo apt install -y python3 python3-pip python3-venv
-
-# Dépendances nécessaires (adapter selon les imports réels)
-sudo pip3 install pyserial flask
+curl -d "Test alerte climat" http://localhost:8080/mon-nas-climat-alerte
 ```
 
-> ⚠️ Les services fournis dans `nas/*.service` utilisent `User=root` et `/usr/bin/python3` (Python système, pas de venv). C'est fonctionnel mais peu élégant côté sécurité. Pour un usage domestique sur réseau local, ça reste acceptable.
+→ La notification doit apparaître sur le téléphone en quelques secondes.
 
 ---
 
-### Étape 6 : Déploiement des scripts sur le volume de stockage
-
-Les services systemd pointent vers `/srv/dev-disk-by-uuid-VOTRE_UUID_ICI/monitoring/`. Il faut donc :
+### Étape 5 : Déploiement des scripts sur le volume de stockage
 
 **1. Trouver l'UUID de votre volume :**
 
@@ -127,31 +177,51 @@ Repérez la ligne correspondant à votre disque/RAID, et copiez la valeur dans l
 
 ```bash
 # Créer le dossier monitoring sur le volume
-sudo mkdir -p /srv/dev-disk-by-uuid-VOTRE_UUID_ICI/monitoring
+sudo mkdir -p /srv/dev-disk-by-uuid-VOTRE_UUID/monitoring
 
 # Copier les scripts depuis le repo cloné
 sudo cp ~/Monitoring-Climatique-NAS/nas/monitor_climat.py \
         ~/Monitoring-Climatique-NAS/nas/setup_dashboard.py \
-        /srv/dev-disk-by-uuid-VOTRE_UUID_ICI/monitoring/
+        /srv/dev-disk-by-uuid-VOTRE_UUID/monitoring/
 
 # Générer dashboard.py
-cd /srv/dev-disk-by-uuid-VOTRE_UUID_ICI/monitoring/
+cd /srv/dev-disk-by-uuid-VOTRE_UUID/monitoring/
 sudo python3 setup_dashboard.py
 
 # Vérifier
 ls -la
 ```
 
-**3. Adapter les services systemd :**
+**3. Personnaliser `monitor_climat.py` :**
 
-Éditez les deux fichiers `.service` du repo **avant** de les installer, pour remplacer `VOTRE_UUID_ICI` par la vraie valeur :
+Éditez le fichier et adaptez la section **CONFIGURATION** en haut :
 
-```bash
-cd ~/Monitoring-Climatique-NAS/nas/
-sed -i "s/VOTRE_UUID_ICI/VOTRE_VRAI_UUID/g" monitor_climat.service dashboard.service
+```python
+port_serie  = '/dev/arduino_nas'
+fichier_log = '/srv/dev-disk-by-uuid-VOTRE_UUID/monitoring/climat.csv'
+
+TEMP_MAX = 30.0    # °C
+HUM_MAX  = 80.0    # %
+
+NTFY_URL = "http://localhost:8080/mon-nas-climat-alerte"
 ```
 
-> 💡 Vous pouvez aussi éditer à la main avec `nano monitor_climat.service`.
+---
+
+### Étape 6 : Installation des dépendances Python
+
+En SSH sur le NAS :
+
+```bash
+# Outils de base (si non installés)
+sudo apt update
+sudo apt install -y python3 python3-pip python3-venv
+
+# Dépendances nécessaires
+sudo pip3 install pyserial flask requests
+```
+
+> ⚠️ Les services fournis dans `nas/*.service` utilisent `User=root` et `/usr/bin/python3` (Python système, pas de venv). C'est fonctionnel mais peu élégant côté sécurité. Pour un usage domestique sur réseau local, ça reste acceptable.
 
 ---
 
@@ -160,16 +230,17 @@ sed -i "s/VOTRE_UUID_ICI/VOTRE_VRAI_UUID/g" monitor_climat.service dashboard.ser
 **Toujours tester à la main avant d'activer les services** — sinon on débogue à l'aveugle.
 
 ```bash
-cd /srv/dev-disk-by-uuid-VOTRE_UUID_ICI/monitoring/
+cd /srv/dev-disk-by-uuid-VOTRE_UUID/monitoring/
 
-# Terminal 1 : collecteur (lecture série → CSV)
+# Terminal 1 : collecteur (lecture série → CSV + alertes ntfy)
 sudo python3 monitor_climat.py
 
 # Terminal 2 : dashboard Flask
 sudo python3 dashboard.py
 ```
 
-Puis depuis un navigateur du réseau : `http://IP-DU-NAS:5000`
+→ Vous devez recevoir une notification `[OK] Monitoring climatique demarre` sur le téléphone.
+→ Puis depuis un navigateur du réseau : `http://IP-DU-NAS:5000`
 
 Si tout fonctionne → passez à systemd. Sinon → inspectez les erreurs affichées.
 
@@ -180,23 +251,23 @@ Si tout fonctionne → passez à systemd. Sinon → inspectez les erreurs affich
 Les fichiers sont fournis dans `nas/`. Il faut les copier dans `/etc/systemd/system/` :
 
 ```bash
-sudo cp ~/Monitoring-Climatique-NAS/nas/monitor_climat.service /etc/systemd/system/
-sudo cp ~/Monitoring-Climatique-NAS/nas/dashboard.service /etc/systemd/system/
+sudo cp ~/Monitoring-Climatique-NAS/nas/monitor-climat.service /etc/systemd/system/
+sudo cp ~/Monitoring-Climatique-NAS/nas/dashboard-climat.service /etc/systemd/system/
 
 # Recharger systemd
 sudo systemctl daemon-reload
 
 # Activer + démarrer
-sudo systemctl enable --now monitor_climat.service
-sudo systemctl enable --now dashboard.service
+sudo systemctl enable --now monitor-climat.service
+sudo systemctl enable --now dashboard-climat.service
 
 # Vérifier l'état
-systemctl status monitor_climat.service
-systemctl status dashboard.service
+systemctl status monitor-climat.service
+systemctl status dashboard-climat.service
 
 # Logs en direct
-journalctl -u monitor_climat.service -f
-journalctl -u dashboard.service -f
+journalctl -u monitor-climat.service -f
+journalctl -u dashboard-climat.service -f
 ```
 
 ---
@@ -227,7 +298,27 @@ Checklist après installation :
 - [ ] Le dashboard affiche les données
 - [ ] Les valeurs changent si on souffle sur le capteur
 - [ ] Après `sudo reboot`, les deux services redémarrent seuls
+- [ ] La notification de démarrage `[OK]` arrive sur le téléphone
 - [ ] L'alerte humidité > 80 % se déclenche (souffler sur le capteur)
+- [ ] L'alerte température > 30 °C se déclenche (si testable)
+
+---
+
+## 🔔 Personnalisation des alertes
+
+Tous les paramètres sont regroupés en haut de `monitor_climat.py` :
+
+| Paramètre | Description | Valeur par défaut |
+|---|---|---|
+| `TEMP_MAX` | Seuil de température (°C) | `30.0` |
+| `HUM_MAX` | Seuil d'humidité (%) | `80.0` |
+| `NTFY_URL` | URL ntfy + topic | `http://localhost:8080/mon-nas-climat-alerte` |
+| `DELAI_SANS_DONNEES` | Délai avant alerte "pas de données" | `15 * 60` (15 min) |
+
+**Logique anti-spam** : le script n'envoie une notification **qu'aux transitions** :
+- Normal → Alerte : 1 notification
+- Alerte → Normal : 1 notification (retour à la normale)
+- Alerte → Alerte : aucune notification (pas de spam)
 
 ---
 
@@ -236,22 +327,26 @@ Checklist après installation :
 | Symptôme | Piste à explorer |
 |---|---|
 | Port série absent | Vérifier `/dev/ttyUSB*` / `/dev/ttyACM*`, `lsusb`, `dmesg \| tail` |
-| Données illisibles | Baudrate 9600 ? Droits série ? |
-| CSV vide | `journalctl -u monitor_climat -n 50` |
+| Données illisibles | Baudrate 9600 ? Droits série (`dialout`) ? |
+| CSV vide | `journalctl -u monitor-climat -n 50` |
 | `dashboard.py` introuvable | Relancer `sudo python3 setup_dashboard.py` |
 | Dashboard inaccessible | Bonne IP ? Pare-feu OMV ? Port 5000 ouvert ? |
 | Thème ne change pas | Vider le cache navigateur (Ctrl+F5) |
-| Service ne démarre pas | `journalctl -u <monitor_climat\|dashboard> -xe` |
-| Erreur "UUID not found" | Vérifier que `VOTRE_UUID_ICI` a bien été remplacé |
+| Service ne démarre pas | `journalctl -u <monitor-climat\|dashboard-climat> -xe` |
+| Erreur "UUID not found" | Vérifier que `VOTRE_UUID` a bien été remplacé |
+| **Erreur `latin-1 codec can't encode`** | Un emoji est présent dans un **titre** de notification. Les titres ne doivent contenir que de l'ASCII — les emojis sont OK dans le **corps** du message. |
+| Notification ntfy non reçue | Vérifier que le conteneur tourne : `docker ps \| grep ntfy` |
+| ntfy inaccessible | Tester `curl http://localhost:8080/v1/health` sur le NAS |
 
 ---
 
 ## 🔐 Sécurité
 
-- ❌ Ne **jamais** exposer Flask directement sur Internet
-- ✅ Ajouter une **authentification** (`flask-httpauth` ou via reverse-proxy)
+- ❌ Ne **jamais** exposer Flask ou ntfy directement sur Internet
+- ✅ Ajouter une **authentification** (`flask-httpauth` pour le dashboard, ou auth ntfy)
 - ✅ Restreindre l'accès au **LAN** via pare-feu
 - ✅ Les services tournent en `root` — acceptable en LAN, à durcir (user dédié) si exposé
+- ✅ Choisir un **nom de topic ntfy long et aléatoire** (il fait office de mot de passe)
 - ✅ Garder le système à jour (`sudo apt update && sudo apt upgrade`)
 
 ---
@@ -259,7 +354,7 @@ Checklist après installation :
 ## 📄 Format du fichier CSV
 
 ```csv
-timestamp,temperature,humidite
+Date et Heure,Temperature_C,Humidite_Pct
 2026-09-17 19:15:00,22.4,47.2
 2026-09-17 19:16:00,22.5,47.0
 ```
@@ -288,4 +383,5 @@ Les PR sont bienvenues ! Ouvrez d'abord une *issue* pour discuter de votre idée
 
 - [Rob Tillaart](https://github.com/RobTillaart/SHT31) pour la bibliothèque `SHT31`
 - [Frank de Brabander](https://github.com/johnrickman/LiquidCrystal_I2C) pour `LiquidCrystal I2C`
+- [binwiederhier](https://github.com/binwiederhier/ntfy) pour **ntfy**
 - La communauté OpenMediaVault pour la documentation
