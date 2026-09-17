@@ -7,11 +7,18 @@ Un système complet et robuste de surveillance de la température et de l'humidi
 
 ## 📸 Aperçu du projet
 
-![SHT31](assets/1.jpg)
-![NAS](assets/2.jpg)
-![Prototype](assets/3.png)
-![Interface](assets/4.jpeg)
+<table>
+  <tr>
+    <td align="center"><img src="assets/1.jpg" alt="SHT31" width="400"/><br><i>Capteur SHT31</i></td>
+    <td align="center"><img src="assets/2.jpg" alt="NAS" width="400"/><br><i>Installation sur le NAS</i></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/3.png" alt="Prototype" width="400"/><br><i>Prototype de test</i></td>
+    <td align="center"><img src="assets/4.jpeg" alt="Interface" width="400"/><br><i>Interface Web Dashboard</i></td>
+  </tr>
+</table>
 
+---
 ---
 
 ## ✨ Fonctionnalités
