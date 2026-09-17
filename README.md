@@ -13,12 +13,11 @@ Un système complet et robuste de surveillance de la température et de l'humidi
     <td align="center"><img src="assets/2.jpg" alt="NAS" width="400"/><br><i>Installation sur le NAS</i></td>
   </tr>
   <tr>
-    <td align="center"><img src="assets/3.png" alt="Prototype" width="400"/><br><i>Prototype de test</i></td>
-    <td align="center"><img src="assets/4.jpeg" alt="Interface" width="400"/><br><i>Interface Web Dashboard</i></td>
+    <td align="center"><img src="assets/3.jpg" alt="Prototype" width="400"/><br><i>Prototype de test</i></td>
+    <td align="center"><img src="assets/4.png" alt="Interface" width="400"/><br><i>Interface Web Dashboard</i></td>
   </tr>
 </table>
 
----
 ---
 
 ## ✨ Fonctionnalités
