@@ -9,7 +9,7 @@ Un système complet et robuste de surveillance de la température et de l'humidi
 
 <table>
   <tr>
-    <td align="center"><img src="assets/1.jpg" alt="SHT31" width="400"/><br><i>Capteur SHT31</i></td>
+    <td align="center"><img src="assets/1.jpeg" alt="SHT31" width="400"/><br><i>Capteur SHT31</i></td>
     <td align="center"><img src="assets/2.jpg" alt="NAS" width="400"/><br><i>Installation sur le NAS</i></td>
   </tr>
   <tr>
