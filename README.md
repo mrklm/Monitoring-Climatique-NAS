@@ -45,7 +45,7 @@ Un système complet et robuste de surveillance de la température et de l'humidi
 
 | Composant | Broche | Connexion Arduino |
 | :--- | :---: | :--- |
-| **SHT31** | VIN | 5V (ou 3.3V) |
+| **SHT31** | VIN | 3.3V) |
 | | GND | GND |
 | | SCL-T | A5 (SCL) |
 | | SAA-RH | A4 (SDA) |
