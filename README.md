@@ -11,11 +11,11 @@ C'est pourquoi je vous propose un système complet et robuste de surveillance de
 <table>
   <tr>
     <td align="center"><img src="assets/1.jpeg" alt="SHT31" width="400"/><br><i>Capteur SHT31</i></td>
-    <td align="center"><img src="assets/2.jpg" alt="NAS" width="400"/><br><i>Installation sur le NAS</i></td>
+    <td align="center"><img src="assets/2.jpg" alt="NAS" width="400"/><br><i>NAS</i></td>
   </tr>
   <tr>
-    <td align="center"><img src="assets/3.jpg" alt="Prototype" width="400"/><br><i>Prototype de test</i></td>
-    <td align="center"><img src="assets/4.png" alt="Interface" width="400"/><br><i>Interface Web Dashboard</i></td>
+    <td align="center"><img src="assets/3.jpg" alt="Prototype" width="400"/><br><i>Prototype</i></td>
+    <td align="center"><img src="assets/4.png" alt="Interface" width="400"/><br><i>Interface Web</i></td>
   </tr>
 </table>
 
