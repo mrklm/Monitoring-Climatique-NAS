@@ -268,7 +268,7 @@ timestamp,temperature,humidite
 
 ## 📜 Licence
 
-Ce projet est placé sous licence **MIT** — voir le fichier `LICENSE`.
+Ce projet est placé sous licence **GNU General Public License v3.0** — voir le fichier [`LICENSE`](./LICENSE).
 
 ### 💡 Pourquoi ce projet est-il sous licence libre ?
 
