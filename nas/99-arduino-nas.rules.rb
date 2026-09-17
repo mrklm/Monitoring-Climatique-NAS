@@ -1,14 +1,13 @@
 # Règle udev pour fixer le nom du port série de l'Arduino
 # Crée un symlink /dev/arduino_nas vers le bon port /dev/ttyUSBx ou /dev/ttyACMx
 #
-#identifier votre Arduino pour ne garder que la bonne ligne:
-# Sur le NAS, lancez -> lsusb | grep -i "arduino\|ch340\|1a86\|2341\|0403"
-#
-#
 # Installation :
 #   sudo cp nas/99-arduino-nas.rules /etc/udev/rules.d/
 #   sudo udevadm control --reload-rules
 #   sudo udevadm trigger
+#
+# Pour identifier votre Arduino :
+#   lsusb | grep -i "arduino\|ch340\|1a86\|2341\|0403"
 
 # Arduino Uno officiel (Vendor 2341 / Product 0043)
 SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="0043", SYMLINK+="arduino_nas"

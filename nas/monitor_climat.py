@@ -4,20 +4,24 @@ import requests
 from datetime import datetime
 
 # ============================================================
-# CONFIGURATION
+# CONFIGURATION — À PERSONNALISER
 # ============================================================
 port_serie  = '/dev/arduino_nas'
-fichier_log = '/srv/dev-disk-by-uuid-VOTRE_UUID_ICI/monitoring/climat.csv'
+fichier_log = '/srv/dev-disk-by-uuid-4a6d87ff-3fee-405f-a4ef-313d1775bb47/monitoring/climat.csv'
 
 # Seuils d'alerte
 TEMP_MAX = 30.0    # °C
 HUM_MAX  = 80.0    # %
 
 # ntfy (instance locale)
-NTFY_URL = "http://localhost:8080/mon-nas-climat-alerte"
+NTFY_URL = "http://localhost:8080/temp-hum-nas-klm-34854g37"
 
 # Alerte "pas de données" : délai sans réception avant alerte
 DELAI_SANS_DONNEES = 15 * 60   # 15 minutes
+
+# Fréquences
+INTERVALLE_LECTURE  = 5        # secondes entre deux lectures du port série
+INTERVALLE_ECRITURE = 60       # secondes entre deux écritures dans le CSV
 
 
 # ============================================================
@@ -27,10 +31,8 @@ def envoyer_ntfy(titre, message, priorite="default", tags="warning"):
     """Envoie une notification via ntfy.
     
     IMPORTANT : les emojis ne doivent JAMAIS être dans le titre (header HTTP),
-    car requests encode les headers en latin-1 par défaut, ce qui fait planter
-    l'envoi avec une erreur 'latin-1 codec can't encode character'.
-    
-    Les emojis sont OK dans le corps du message (encodé explicitement en UTF-8).
+    car requests encode les headers en latin-1 par défaut.
+    Les emojis sont OK dans le corps du message (encodé en UTF-8).
     """
     try:
         requests.post(
@@ -53,7 +55,6 @@ etat_hum_precedent     = "normal"
 etat_donnees_precedent = "normal"
 
 # Initialisé à None tant qu'aucune donnée n'a été reçue depuis le démarrage.
-# Cela évite les fausses alertes "pas de données" au redémarrage du NAS.
 derniere_reception = None
 
 
@@ -129,6 +130,35 @@ def verifier_silence():
         etat_donnees_precedent = "normal"
 
 
+def lire_derniere_valeur(ser):
+    """Vide le buffer série et retourne la DERNIÈRE ligne DATA valide.
+    
+    C'est le point crucial : on ne lit pas la première ligne qui traîne,
+    on lit tout ce qui est disponible et on garde la plus récente.
+    
+    Retourne un tuple (temp, hum) ou None si rien de valide.
+    """
+    derniere_valide = None
+
+    # Lire TOUT ce qui est disponible dans le buffer
+    while ser.in_waiting > 0:
+        try:
+            ligne = ser.readline().decode('utf-8').strip()
+            if ligne.startswith("DATA,"):
+                derniere_valide = ligne
+        except UnicodeDecodeError:
+            continue
+
+    if derniere_valide is None:
+        return None
+
+    try:
+        _, temp, hum = derniere_valide.split(",")
+        return float(temp), float(hum)
+    except (ValueError, IndexError):
+        return None
+
+
 # ============================================================
 # BOUCLE PRINCIPALE
 # ============================================================
@@ -142,7 +172,6 @@ try:
     except FileExistsError:
         pass
 
-    # Notif de démarrage
     envoyer_ntfy(
         "[OK] Monitoring climatique demarre",
         "🟢 Le service de surveillance est actif.",
@@ -150,32 +179,33 @@ try:
         tags="white_check_mark"
     )
 
+    derniere_ecriture = 0
+
     while True:
-        if ser.in_waiting > 0:
-            ligne = ser.readline().decode('utf-8').strip()
-            if ligne.startswith("DATA,"):
-                _, temp, hum = ligne.split(",")
-                temp = float(temp)
-                hum  = float(hum)
-                maintenant = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        resultat = lire_derniere_valeur(ser)
 
+        if resultat is not None:
+            temp, hum = resultat
+            maintenant = datetime.now()
+            derniere_reception = maintenant
+
+            # Vérifier les seuils à CHAQUE lecture (pour ne pas rater un pic)
+            verifier_seuils(temp, hum)
+
+            # Écrire dans le CSV seulement toutes les INTERVALLE_ECRITURE secondes
+            if (maintenant.timestamp() - derniere_ecriture) >= INTERVALLE_ECRITURE:
+                horodatage = maintenant.strftime("%Y-%m-%d %H:%M:%S")
                 with open(fichier_log, "a") as f:
-                    f.write(f"{maintenant},{temp},{hum}\n")
-
-                # À partir d'ici, on a une donnée : le compteur de silence démarre
-                derniere_reception = datetime.now()
-
-                verifier_seuils(temp, hum)
+                    f.write(f"{horodatage},{temp},{hum}\n")
+                derniere_ecriture = maintenant.timestamp()
 
                 if temp > TEMP_MAX or hum > HUM_MAX:
                     print(f"ALERTE: Temp {temp}C | Hum {hum}%")
                 else:
                     print(f"Temp: {temp}C | Hum: {hum}%")
 
-        # Vérifie le silence même si aucune ligne n'arrive
         verifier_silence()
-
-        time.sleep(60)
+        time.sleep(INTERVALLE_LECTURE)
 
 except KeyboardInterrupt:
     print("Arret du script.")

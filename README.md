@@ -149,14 +149,24 @@ Enregistrer, puis aller dans **Services → Compose → Services** et démarrer 
 2. Dans l'app, ajouter un serveur personnalisé : `http://IP-DU-NAS:8080`
 3. S'abonner à un topic, par exemple `mon-nas-climat-alerte`.
 
-> ⚠️ Choisissez un nom de topic **long et difficile à deviner** si vous n'activez pas l'authentification, car il fait office de mot de passe.
+> ⚠️ **IMPORTANT — Choisissez votre propre topic !**
+>
+> Le topic ntfy fait office de **mot de passe** : quiconque connaît son nom peut lire et écrire dedans (si vous n'activez pas l'authentification).
+>
+> Utilisez un nom **long, unique et difficile à deviner**, par exemple :
+> ```bash
+> echo "mon-nas-climat-$(openssl rand -hex 6)"
+> # → ex: mon-nas-climat-a7f3k9x2m4p8
+> ```
+>
+> Ne réutilisez **jamais** un nom de topic trouvé dans un tuto ou un exemple public.
 
 #### 4.4 — Test de la chaîne
 
 Depuis le NAS en SSH :
 
 ```bash
-curl -d "Test alerte climat" http://localhost:8080/mon-nas-climat-alerte
+curl -d "Test alerte climat" http://localhost:8080/VOTRE-TOPIC
 ```
 
 → La notification doit apparaître sur le téléphone en quelques secondes.
@@ -203,7 +213,7 @@ fichier_log = '/srv/dev-disk-by-uuid-VOTRE_UUID/monitoring/climat.csv'
 TEMP_MAX = 30.0    # °C
 HUM_MAX  = 80.0    # %
 
-NTFY_URL = "http://localhost:8080/mon-nas-climat-alerte"
+NTFY_URL = "http://localhost:8080/VOTRE-TOPIC"
 ```
 
 ---
@@ -215,7 +225,7 @@ En SSH sur le NAS :
 ```bash
 # Outils de base (si non installés)
 sudo apt update
-sudo apt install -y python3 python3-pip python3-venv
+sudo apt install -y python3 python3-pip python3-venv curl
 
 # Dépendances nécessaires
 sudo pip3 install pyserial flask requests
@@ -294,7 +304,7 @@ hostname -I
 
 Checklist après installation :
 
-- [ ] Le fichier CSV se remplit bien
+- [ ] Le fichier CSV se remplit bien (1 ligne/minute)
 - [ ] Le dashboard affiche les données
 - [ ] Les valeurs changent si on souffle sur le capteur
 - [ ] Après `sudo reboot`, les deux services redémarrent seuls
@@ -312,8 +322,10 @@ Tous les paramètres sont regroupés en haut de `monitor_climat.py` :
 |---|---|---|
 | `TEMP_MAX` | Seuil de température (°C) | `30.0` |
 | `HUM_MAX` | Seuil d'humidité (%) | `80.0` |
-| `NTFY_URL` | URL ntfy + topic | `http://localhost:8080/mon-nas-climat-alerte` |
+| `NTFY_URL` | URL ntfy + topic | `http://localhost:8080/VOTRE-TOPIC` |
 | `DELAI_SANS_DONNEES` | Délai avant alerte "pas de données" | `15 * 60` (15 min) |
+| `INTERVALLE_LECTURE` | Fréquence de lecture du port série | `5` (secondes) |
+| `INTERVALLE_ECRITURE` | Fréquence d'écriture dans le CSV | `60` (secondes) |
 
 **Logique anti-spam** : le script n'envoie une notification **qu'aux transitions** :
 - Normal → Alerte : 1 notification
@@ -337,6 +349,7 @@ Tous les paramètres sont regroupés en haut de `monitor_climat.py` :
 | **Erreur `latin-1 codec can't encode`** | Un emoji est présent dans un **titre** de notification. Les titres ne doivent contenir que de l'ASCII — les emojis sont OK dans le **corps** du message. |
 | Notification ntfy non reçue | Vérifier que le conteneur tourne : `docker ps \| grep ntfy` |
 | ntfy inaccessible | Tester `curl http://localhost:8080/v1/health` sur le NAS |
+| Alerte humidité non déclenchée | Le script lit le buffer série en entier (corrigé). Si le problème persiste, vérifier le code Arduino. |
 
 ---
 
