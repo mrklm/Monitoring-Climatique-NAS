@@ -2,7 +2,7 @@
 
 Un NAS, comme tout ordinateur, possède des capteurs de température mais pas de capteur d'humidité !
 
-C'est pourquoi je vous propose un système complet et robuste de surveillance de la température et de l'humidité, connecté à un NAS OpenMediaVault (OMV). Ce projet combine un capteur Arduino, un stockage sécurisé sur RAID et un tableau de bord web personnalisé avec thèmes dynamiques et alertes push via serveur ntfy (ici déployé avec Docker).
+C'est pourquoi je vous propose un système complet et robuste de surveillance de la température et de l'humidité, connecté à un NAS OpenMediaVault (OMV). Ce projet combine un capteur SHT31 branché sur une carte Arduino, un stockage sécurisé sur RAID et un tableau de bord web personnalisé avec thèmes dynamiques et alertes push via serveur ntfy (ici déployé avec Docker).
 
 ![License](https://img.shields.io/badge/License-GPLv3-blue)
 
