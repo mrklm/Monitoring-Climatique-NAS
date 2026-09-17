@@ -1,4 +1,4 @@
-cat << 'EOF' > README.md
+
 # 🌡️ Monitoring Climatique NAS
 
 Un système complet et robuste de surveillance de la température et de l'humidité, connecté à un NAS OpenMediaVault (OMV). Ce projet combine un capteur Arduino, un stockage sécurisé sur RAID et un tableau de bord web personnalisé avec thèmes dynamiques et alertes.
