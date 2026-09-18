@@ -89,7 +89,19 @@ HTML_CONTENT = """<!DOCTYPE html>
             padding: 8px 14px; border-radius: 5px;
             font-weight: bold; font-size: 1.1em; white-space: nowrap;
         }
-        .ambiance .chart { width: 100%; max-width: 100%; height: 180px; overflow: hidden; }
+                        
+        .ambiance .chart {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            height: 180px;
+            overflow: hidden;
+        }
+        .ambiance .chart canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }    
 
         /* ============================================= */
         /* MODE COMPLET : grille fixe 3 colonnes         */
@@ -687,10 +699,23 @@ HTML_CONTENT = """<!DOCTYPE html>
         // INIT
         // ============================================================
 
-        // Forcer Chart.js à se redimensionner quand la fenêtre change de taille
-        window.addEventListener('resize', () => {
-            if (chart) chart.resize();
-        });
+        // Forcer Chart.js à se redimensionner quand le conteneur change
+        const chartContainer = document.querySelector('.ambiance .chart');
+        if (window.ResizeObserver && chartContainer) {
+            const ro = new ResizeObserver(() => {
+                if (chart) chart.resize();
+            });
+            ro.observe(chartContainer);
+        }
+
+        // Forcer Chart.js à se redimensionner quand le conteneur change
+        const chartContainer = document.querySelector('.ambiance .chart');
+        if (window.ResizeObserver && chartContainer) {
+            const ro = new ResizeObserver(() => {
+                if (chart) chart.resize();
+            });
+            ro.observe(chartContainer);
+        }
 
         initThemes();
         initColorPickers();
@@ -700,6 +725,9 @@ HTML_CONTENT = """<!DOCTYPE html>
         loadAlertes();
         updateData();
         setInterval(updateData, 5000);
+
+        // Forcer un resize après le premier rendu (laisse le temps au layout de se stabiliser)
+        setTimeout(() => { if (chart) chart.resize(); }, 500);
     </script>
 </body>
 </html>"""
