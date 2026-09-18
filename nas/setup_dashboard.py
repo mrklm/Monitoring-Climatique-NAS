@@ -708,15 +708,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             ro.observe(chartContainer);
         }
 
-        // Forcer Chart.js à se redimensionner quand le conteneur change
-        const chartContainer = document.querySelector('.ambiance .chart');
-        if (window.ResizeObserver && chartContainer) {
-            const ro = new ResizeObserver(() => {
-                if (chart) chart.resize();
-            });
-            ro.observe(chartContainer);
-        }
-
         initThemes();
         initColorPickers();
         renderDisks();
