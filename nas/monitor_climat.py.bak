@@ -1,5 +1,5 @@
 [Unit]
-Description=Script de monitoring climatique Arduino
+Description=Script de ploufNAS
 After=network.target
 
 [Service]
