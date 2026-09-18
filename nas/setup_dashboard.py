@@ -27,7 +27,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Monitoring NAS</title>
+    <title>ploufNAS</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --bg: #f5f5f5; --panel: #ffffff; --fg: #333333; --accent: #007bff; }
@@ -45,7 +45,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 </head>
 <body>
     <div class="header">
-        <h1>Monitoring Climatique NAS</h1>
+        <h1>ploufNAS</h1>
         <select id="themeSelector"></select>
     </div>
     <div class="stats">
