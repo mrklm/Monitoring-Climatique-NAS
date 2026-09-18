@@ -438,7 +438,7 @@ import csv
 import os
 import json
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='assets', static_url_path='/assets')
 CSV_FILE = './climat.csv'
 ALERTES_FILE = './alertes.json'
 
