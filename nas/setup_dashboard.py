@@ -53,12 +53,20 @@ HTML_CONTENT = """<!DOCTYPE html>
         .header button:hover { background: var(--accent); color: #fff; }
         
         /* Bloc ambiance */
-        .ambiance { background-color: var(--panel); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
-        .ambiance .nas-icon { flex: 0 0 150px; text-align: center; }
-        .ambiance .nas-icon img { max-width: 100%; height: auto; }
-        .ambiance .values { flex: 0 0 150px; text-align: center; }
-        .ambiance .values .value { background: var(--accent); color: #fff; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-weight: bold; font-size: 1.2em; }
-        .ambiance .chart { flex: 1; min-width: 0; }
+        .ambiance { background-color: var(--panel); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 20px; }
+        .ambiance .nas-icon { text-align: center; }
+        .ambiance .nas-icon img { max-width: 200px; height: auto; }
+        .ambiance .values { display: flex; gap: 30px; justify-content: center; align-items: center; }
+        .ambiance .values .value { background: var(--accent); color: #fff; padding: 12px 20px; border-radius: 6px; font-weight: bold; font-size: 1.3em; white-space: nowrap; }
+        .ambiance .chart { width: 100%; max-width: 100%; }
+        
+        /* Mode COMPLET : bloc ambiance en horizontal */
+        body.mode-full .ambiance { flex-direction: row; align-items: center; }
+        body.mode-full .ambiance .nas-icon { flex: 0 0 150px; }
+        body.mode-full .ambiance .nas-icon img { max-width: 100%; }
+        body.mode-full .ambiance .values { flex-direction: column; gap: 10px; flex: 0 0 150px; }
+        body.mode-full .ambiance .values .value { padding: 10px; font-size: 1.2em; }
+        body.mode-full .ambiance .chart { flex: 1; min-width: 0; max-width: none; }
         
         /* Bloc disques */
         .disks { background-color: var(--panel); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; }
@@ -97,8 +105,9 @@ HTML_CONTENT = """<!DOCTYPE html>
         
         /* Responsive */
         @media (max-width: 768px) {
-            .ambiance { flex-direction: column; }
-            .ambiance .nas-icon, .ambiance .values { flex: 0 0 auto; }
+            .ambiance { flex-direction: column !important; }
+            .ambiance .nas-icon, .ambiance .values { flex: 0 0 auto !important; }
+            .ambiance .values { flex-direction: row !important; flex-wrap: wrap; }
             .system { flex-direction: column; }
             .modal { min-width: auto; width: 90%; }
         }
@@ -308,19 +317,19 @@ HTML_CONTENT = """<!DOCTYPE html>
             const fullOptions = document.getElementById('fullModeOptions');
             
             if (mode === 'basic') {
+                document.body.classList.remove('mode-full');
                 fullOptions.querySelectorAll('input').forEach(i => i.disabled = true);
                 fullOptions.querySelectorAll('.checkbox').forEach(c => c.classList.add('disabled'));
-                // Masquer les blocs système
                 document.getElementById('disksBlock').style.display = 'none';
                 document.getElementById('systemBlock').style.display = 'none';
             } else {
+                document.body.classList.add('mode-full');
                 fullOptions.querySelectorAll('input').forEach(i => {
                     if (i.id !== 'showGpu') i.disabled = false;
                 });
                 fullOptions.querySelectorAll('.checkbox').forEach(c => {
                     if (c.id !== 'showGpuContainer') c.classList.remove('disabled');
                 });
-                // Afficher selon les cases
                 document.getElementById('disksBlock').style.display =
                     document.getElementById('showDisks').checked ? 'flex' : 'none';
                 document.getElementById('systemBlock').style.display =
@@ -369,13 +378,6 @@ HTML_CONTENT = """<!DOCTYPE html>
         // ============================================================
         // GRAPHIQUE + DONNÉES AMBIANCE
         // ============================================================
-        function checkAlert(hum) {
-            const msg = document.getElementById('alertMsg');
-            if (!msg) return;
-            if (hum > HUMIDITY_THRESHOLD) msg.style.display = 'block';
-            else msg.style.display = 'none';
-        }
-        
         async function updateData() {
             let res = await fetch('/api');
             let data = await res.json();
@@ -424,6 +426,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         initThemes();
         renderDisks();
         renderSystem();
+        updateModeUI();   // <-- Applique le mode par défaut dès le chargement
         updateData();
         setInterval(updateData, 5000);
     </script>
@@ -438,6 +441,7 @@ import csv
 import os
 import json
 
+# Flask avec un dossier statique dédié pour les images
 app = Flask(__name__, static_folder='assets', static_url_path='/assets')
 CSV_FILE = './climat.csv'
 ALERTES_FILE = './alertes.json'
@@ -478,8 +482,8 @@ if __name__ == '__main__':
 # ============================================================
 # ÉCRITURE DES FICHIERS
 # ============================================================
-with open(BASE_DIR + 'index.html', 'w') as f:
+with open(BASE_DIR + 'index.html', 'w', encoding='utf-8') as f:
     f.write(HTML_CONTENT)
-with open(BASE_DIR + 'dashboard.py', 'w') as f:
+with open(BASE_DIR + 'dashboard.py', 'w', encoding='utf-8') as f:
     f.write(PYTHON_CONTENT)
 print("✅ Dashboard et thèmes générés avec succès dans le dossier courant !")
