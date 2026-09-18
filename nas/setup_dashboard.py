@@ -63,7 +63,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         /* Mode COMPLET : bloc ambiance en horizontal */
         body.mode-full .ambiance { flex-direction: row; align-items: center; }
         body.mode-full .ambiance .nas-icon { flex: 0 0 150px; }
-        body.mode-full .ambiance .nas-icon img { max-width: 100%; }
+        body.mode-full .ambiance .nas-icon img { max-width: 150px; width: 100%; height: auto; }
         body.mode-full .ambiance .values { flex-direction: column; gap: 10px; flex: 0 0 150px; }
         body.mode-full .ambiance .values .value { padding: 10px; font-size: 1.2em; }
         body.mode-full .ambiance .chart { flex: 1; min-width: 0; max-width: none; }
@@ -296,6 +296,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             selector.value = randomTheme;
             applyTheme(randomTheme);
             selector.addEventListener('change', (e) => applyTheme(e.target.value));
+            // Écouter les changements de mode pour activer/désactiver les cases immédiatement
+            document.getElementById('modeSelector').addEventListener('change', updateModeUI);
         }
         
         // ============================================================
