@@ -15,7 +15,8 @@ C'est pourquoi je vous propose un système complet et robuste de surveillance de
   </tr>
   <tr>
     <td align="center"><img src="assets/3.jpg" alt="Prototype" width="400"/><br><i>Prototype</i></td>
-    <td align="center"><img src="assets/4.png" alt="Interface" width="400"/><br><i>Interface Web</i></td>
+    <td align="center"><img src="assets/4.png" alt="Interface" width="400"/><br><i>Interface Web Basique</i></td>
+    <td align="center"><img src="assets/5.png" alt="Interface" width="400"/><br><i>Interface Web Avancée</i></td> 
   </tr>
 </table>
 
