@@ -57,6 +57,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             padding: 12px;
             font-size: 13px;
             transition: all 0.3s ease;
+            min-width: 900px; /* Empêche l'écrasement total */
         }
 
         /* Header */
@@ -71,7 +72,9 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .header button:hover { background: var(--accent); color: #fff; }
 
-        /* Bloc ambiance */
+        /* ============================================= */
+        /* BLOC AMBIANCE                                 */
+        /* ============================================= */
         .ambiance {
             background-color: var(--panel); padding: 12px; border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -88,45 +91,74 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         .ambiance .chart { width: 100%; max-width: 100%; height: 180px; }
 
-        /* Mode COMPLET : ambiance en horizontal compact */
-        body.mode-full .ambiance { flex-direction: row; align-items: center; padding: 8px 12px; }
-        body.mode-full .ambiance .nas-icon { flex: 0 0 70px; }
-        body.mode-full .ambiance .nas-icon img { max-width: 70px; width: 100%; height: auto; }
-        body.mode-full .ambiance .values { flex-direction: column; gap: 5px; flex: 0 0 120px; }
-        body.mode-full .ambiance .values .value { padding: 6px 10px; font-size: 1em; }
-        body.mode-full .ambiance .chart { flex: 1; min-width: 0; max-width: none; height: 150px; }
+        /* ============================================= */
+        /* MODE COMPLET : grille fixe 3 colonnes         */
+        /* ============================================= */
+        body.mode-full .ambiance {
+            display: grid;
+            grid-template-columns: 80px 140px 1fr;
+            gap: 15px;
+            align-items: center;
+            padding: 10px 15px;
+        }
+        body.mode-full .ambiance .nas-icon { grid-column: 1; }
+        body.mode-full .ambiance .nas-icon img { max-width: 80px; width: 100%; height: auto; }
+        body.mode-full .ambiance .values {
+            grid-column: 2;
+            flex-direction: column;
+            gap: 5px;
+        }
+        body.mode-full .ambiance .values .value { padding: 6px 10px; font-size: 1em; width: 100%; text-align: center; }
+        body.mode-full .ambiance .chart { grid-column: 3; height: 130px; }
 
-        /* Bloc disques */
+        /* ============================================= */
+        /* BLOC DISQUES + CPU : grille fixe 2 colonnes   */
+        /* ============================================= */
+        .bottom-row {
+            display: flex; flex-direction: column; gap: 10px;
+        }
         .disks {
             background-color: var(--panel); padding: 10px; border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 10px;
-            display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-around; flex-wrap: wrap; gap: 8px;
         }
         .disk { text-align: center; cursor: help; transition: transform 0.2s; }
         .disk:hover { transform: translateY(-3px); }
-        .disk img { width: 55px; height: auto; }
-        .disk .name { font-weight: bold; margin: 3px 0; color: var(--accent); font-size: 0.9em; }
+        .disk img { width: 45px; height: auto; }
+        .disk .name { font-weight: bold; margin: 3px 0; color: var(--accent); font-size: 0.8em; }
         .disk .temp {
             background: var(--accent); color: #fff;
-            padding: 3px 8px; border-radius: 3px; font-size: 0.8em;
+            padding: 2px 6px; border-radius: 3px; font-size: 0.75em;
             display: inline-block;
         }
 
         /* Bloc CPU + GPU */
-        .system { display: flex; gap: 10px; margin-bottom: 10px; }
+        .system { display: flex; flex-direction: column; gap: 10px; }
         .system .block {
-            flex: 1; background-color: var(--panel); padding: 10px; border-radius: 8px;
+            background-color: var(--panel); padding: 10px; border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center;
         }
-        .system .block img { width: 65px; height: auto; }
-        .system .block .name { font-weight: bold; font-size: 1em; margin: 5px 0; color: var(--accent); }
+        .system .block img { width: 55px; height: auto; }
+        .system .block .name { font-weight: bold; font-size: 0.95em; margin: 4px 0; color: var(--accent); }
         .system .block .temp {
             background: var(--accent); color: #fff;
-            padding: 3px 10px; border-radius: 3px; display: inline-block; font-size: 0.9em;
+            padding: 3px 10px; border-radius: 3px; display: inline-block; font-size: 0.85em;
         }
         .system .block.disabled { opacity: 0.4; }
 
-        /* Modale Paramètres compacte */
+        /* En mode COMPLET : disques à gauche + CPU à droite sur la même ligne */
+        body.mode-full .bottom-row {
+            display: grid;
+            grid-template-columns: 1fr 200px;
+            gap: 10px;
+            align-items: stretch;
+        }
+        body.mode-full .disks { margin-bottom: 0; }
+        body.mode-full .system { margin-bottom: 0; }
+
+        /* ============================================= */
+        /* MODALE PARAMÈTRES                             */
+        /* ============================================= */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;
@@ -176,12 +208,19 @@ HTML_CONTENT = """<!DOCTYPE html>
             background: var(--accent); color: #fff; font-size: 0.9em; cursor: pointer;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .ambiance { flex-direction: column !important; }
-            .ambiance .nas-icon, .ambiance .values { flex: 0 0 auto !important; }
-            .ambiance .values { flex-direction: row !important; flex-wrap: wrap; }
-            .system { flex-direction: column; }
+        /* ============================================= */
+        /* RESPONSIVE (mobile)                           */
+        /* ============================================= */
+        @media (max-width: 900px) {
+            body { min-width: auto; }
+            body.mode-full .ambiance {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            body.mode-full .ambiance .nas-icon,
+            body.mode-full .ambiance .values,
+            body.mode-full .ambiance .chart { grid-column: 1; }
+            body.mode-full .bottom-row { grid-template-columns: 1fr; }
             .modal { min-width: auto; width: 95%; font-size: 0.85em; }
         }
     </style>
@@ -210,20 +249,20 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- Bloc disques -->
-    <div class="disks" id="disksBlock"></div>
-
-    <!-- Bloc système (CPU + GPU) -->
-    <div class="system" id="systemBlock">
-        <div class="block" id="cpuBlock">
-            <img src="assets/CPU.png" alt="CPU" onerror="this.style.display='none'">
-            <div class="name">CPU</div>
-            <div class="temp" id="cpuTemp">-- °C</div>
-        </div>
-        <div class="block" id="gpuBlock">
-            <img src="assets/GPU.png" alt="GPU" onerror="this.style.display='none'">
-            <div class="name">GPU</div>
-            <div class="temp" id="gpuTemp">-- °C</div>
+    <!-- Rangée du bas : disques + CPU/GPU -->
+    <div class="bottom-row" id="bottomRow">
+        <div class="disks" id="disksBlock"></div>
+        <div class="system" id="systemBlock">
+            <div class="block" id="cpuBlock">
+                <img src="assets/CPU.png" alt="CPU" onerror="this.style.display='none'">
+                <div class="name">CPU</div>
+                <div class="temp" id="cpuTemp">-- °C</div>
+            </div>
+            <div class="block" id="gpuBlock">
+                <img src="assets/GPU.png" alt="GPU" onerror="this.style.display='none'">
+                <div class="name">GPU</div>
+                <div class="temp" id="gpuTemp">-- °C</div>
+            </div>
         </div>
     </div>
 
@@ -246,7 +285,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 </label>
             </div>
 
-            <!-- 2. Composants (mode complet) -->
+            <!-- 2. Composants -->
             <div class="section" id="fullModeOptions">
                 <h3>Composants à afficher (mode complet)</h3>
                 <div class="checkbox">
@@ -263,7 +302,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- 3. Couleurs du graphique -->
+            <!-- 3. Couleurs -->
             <div class="section">
                 <h3>Couleurs du graphique</h3>
                 <div class="color-row">
@@ -278,7 +317,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- 4. Alertes système -->
+            <!-- 4. Alertes -->
             <div class="section">
                 <h3>Alertes système</h3>
                 <div class="checkbox">
@@ -360,7 +399,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         let humColor  = '#3B8BFF';
 
         // ============================================================
-        // APPLICATION DES COULEURS
+        // COULEURS
         // ============================================================
         function applyColors() {
             document.documentElement.style.setProperty('--temp-color', tempColor);
@@ -373,7 +412,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
 
         // ============================================================
-        // GESTION DU THÈME
+        // THÈME
         // ============================================================
         function applyTheme(themeName) {
             const t = THEMES[themeName];
@@ -382,10 +421,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             document.documentElement.style.setProperty('--panel', t.PANEL);
             document.documentElement.style.setProperty('--fg', t.FG);
             document.documentElement.style.setProperty('--accent', t.ACCENT);
-            if (chart) {
-                // On NE touche PAS aux couleurs des courbes (elles sont indépendantes du thème)
-                chart.update();
-            }
+            if (chart) chart.update();
         }
 
         function initThemes() {
@@ -401,13 +437,11 @@ HTML_CONTENT = """<!DOCTYPE html>
             selector.value = randomTheme;
             applyTheme(randomTheme);
             selector.addEventListener('change', (e) => applyTheme(e.target.value));
-
-            // Écouteur de mode
             document.getElementById('modeSelector').addEventListener('change', updateModeUI);
         }
 
         // ============================================================
-        // SYNCHRONISATION DES CHAMPS COULEUR
+        // COLOR PICKERS
         // ============================================================
         function initColorPickers() {
             const tColor    = document.getElementById('tempColor');
@@ -415,7 +449,6 @@ HTML_CONTENT = """<!DOCTYPE html>
             const hColor    = document.getElementById('humColor');
             const hColorTxt = document.getElementById('humColorText');
 
-            // Sync picker → text et preview
             tColor.addEventListener('input', (e) => {
                 tColorTxt.value = e.target.value.toUpperCase();
                 tempColor = e.target.value;
@@ -427,7 +460,6 @@ HTML_CONTENT = """<!DOCTYPE html>
                 applyColors();
             });
 
-            // Sync text → picker et preview
             tColorTxt.addEventListener('change', (e) => {
                 const val = e.target.value;
                 if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
@@ -447,7 +479,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
 
         // ============================================================
-        // MODALE PARAMÈTRES
+        // MODALE
         // ============================================================
         function openSettings() {
             document.getElementById('settingsModal').classList.add('active');
@@ -458,11 +490,9 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
         function applySettings() {
             updateModeUI();
-            // Mettre à jour les variables globales depuis les pickers
             tempColor = document.getElementById('tempColor').value;
             humColor  = document.getElementById('humColor').value;
             applyColors();
-            // Sauvegarder dans alertes.json
             saveAlertes();
             closeSettings();
         }
@@ -475,8 +505,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                 document.body.classList.remove('mode-full');
                 fullOptions.querySelectorAll('input').forEach(i => i.disabled = true);
                 fullOptions.querySelectorAll('.checkbox').forEach(c => c.classList.add('disabled'));
-                document.getElementById('disksBlock').style.display = 'none';
-                document.getElementById('systemBlock').style.display = 'none';
+                document.getElementById('bottomRow').style.display = 'none';
             } else {
                 document.body.classList.add('mode-full');
                 fullOptions.querySelectorAll('input').forEach(i => {
@@ -485,15 +514,24 @@ HTML_CONTENT = """<!DOCTYPE html>
                 fullOptions.querySelectorAll('.checkbox').forEach(c => {
                     if (c.id !== 'showGpuContainer') c.classList.remove('disabled');
                 });
+                document.getElementById('bottomRow').style.display = 'grid';
+
+                // Disques
                 document.getElementById('disksBlock').style.display =
                     document.getElementById('showDisks').checked ? 'flex' : 'none';
-                document.getElementById('systemBlock').style.display =
-                    document.getElementById('showCpu').checked ? 'flex' : 'none';
+
+                // CPU
+                document.getElementById('cpuBlock').style.display =
+                    document.getElementById('showCpu').checked ? 'block' : 'none';
+
+                // GPU (uniquement si coché)
+                document.getElementById('gpuBlock').style.display =
+                    document.getElementById('showGpu').checked ? 'block' : 'none';
             }
         }
 
         // ============================================================
-        // SAUVEGARDE DES PRÉFÉRENCES DANS alertes.json
+        // SAUVEGARDE / CHARGEMENT alertes.json
         // ============================================================
         async function saveAlertes() {
             const payload = {
@@ -505,9 +543,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     enabled: document.getElementById('alertDisks').checked,
                     threshold: parseInt(document.getElementById('alertDisksThreshold').value)
                 },
-                smart: {
-                    enabled: document.getElementById('alertSmart').checked
-                },
+                smart: { enabled: document.getElementById('alertSmart').checked },
                 gpu: {
                     enabled: document.getElementById('alertGpu').checked,
                     threshold: parseInt(document.getElementById('alertGpuThreshold').value)
@@ -523,14 +559,9 @@ HTML_CONTENT = """<!DOCTYPE html>
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-            } catch (e) {
-                console.error('Erreur sauvegarde alertes:', e);
-            }
+            } catch (e) { console.error('Erreur sauvegarde:', e); }
         }
 
-        // ============================================================
-        // CHARGEMENT DES PRÉFÉRENCES DEPUIS alertes.json
-        // ============================================================
         async function loadAlertes() {
             try {
                 const res = await fetch('/api/alertes');
@@ -543,9 +574,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     document.getElementById('alertDisks').checked = data.disks.enabled;
                     document.getElementById('alertDisksThreshold').value = data.disks.threshold;
                 }
-                if (data.smart) {
-                    document.getElementById('alertSmart').checked = data.smart.enabled;
-                }
+                if (data.smart) document.getElementById('alertSmart').checked = data.smart.enabled;
                 if (data.gpu)   {
                     document.getElementById('alertGpu').checked = data.gpu.enabled;
                     document.getElementById('alertGpuThreshold').value = data.gpu.threshold;
@@ -559,13 +588,11 @@ HTML_CONTENT = """<!DOCTYPE html>
                     document.getElementById('humColorText').value = humColor.toUpperCase();
                 }
                 applyColors();
-            } catch (e) {
-                console.error('Erreur chargement alertes:', e);
-            }
+            } catch (e) { console.error('Erreur chargement:', e); }
         }
 
         // ============================================================
-        // DONNÉES (démo — valeurs fixes pour l'Étape 1)
+        // DONNÉES DÉMO
         // ============================================================
         function renderDisks() {
             const disks = [
@@ -603,7 +630,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
 
         // ============================================================
-        // GRAPHIQUE + DONNÉES AMBIANCE
+        // GRAPHIQUE
         // ============================================================
         async function updateData() {
             let res = await fetch('/api');
@@ -629,7 +656,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                         data: {
                             labels: labels,
                             datasets: [
-                                { label: 'Température (°C)', data: temps, borderColor: tempColor, backgroundColor: 'rgba(0,0,0,0)', yAxisID: 'y', tension: 0.3, pointRadius: 2 },
+                                { label: 'Température (°C)', data: temps, borderColor: tempColor, backgroundColor: 'rgba(0,0,0,0)', yAxisID: 'y',  tension: 0.3, pointRadius: 2 },
                                 { label: 'Humidité (%)',     data: hums,  borderColor: humColor,  backgroundColor: 'rgba(0,0,0,0)', yAxisID: 'y1', tension: 0.3, pointRadius: 2 }
                             ]
                         },
@@ -638,13 +665,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                             maintainAspectRatio: false,
                             interaction: { mode: 'index', intersect: false },
                             plugins: {
-                                legend: {
-                                    labels: {
-                                        color: 'var(--fg)',
-                                        boxWidth: 15,
-                                        font: { size: 11 }
-                                    }
-                                }
+                                legend: { labels: { color: 'var(--fg)', boxWidth: 15, font: { size: 11 } } }
                             },
                             scales: {
                                 y:  { type: 'linear', display: true, position: 'left',  min: 15, max: 35,
@@ -663,14 +684,14 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
 
         // ============================================================
-        // INITIALISATION
+        // INIT
         // ============================================================
         initThemes();
         initColorPickers();
         renderDisks();
         renderSystem();
         updateModeUI();
-        loadAlertes();     // Charge les préférences sauvegardées
+        loadAlertes();
         updateData();
         setInterval(updateData, 5000);
     </script>
@@ -678,14 +699,13 @@ HTML_CONTENT = """<!DOCTYPE html>
 </html>"""
 
 # ============================================================
-# SCRIPT PYTHON FLASK
+# FLASK
 # ============================================================
 PYTHON_CONTENT = """from flask import Flask, jsonify, send_file, request
 import csv
 import os
 import json
 
-# Flask avec un dossier statique dédié pour les images
 app = Flask(__name__, static_folder='assets', static_url_path='/assets')
 CSV_FILE = './climat.csv'
 ALERTES_FILE = './alertes.json'
@@ -712,7 +732,6 @@ def api():
 
 @app.route('/api/alertes', methods=['GET'])
 def get_alertes():
-    \"\"\"Retourne la config actuelle des alertes et couleurs.\"\"\"
     try:
         with open(ALERTES_FILE, 'r') as f:
             return jsonify(json.load(f))
@@ -721,7 +740,6 @@ def get_alertes():
 
 @app.route('/api/alertes', methods=['POST'])
 def save_alertes():
-    \"\"\"Sauvegarde la config des alertes et couleurs.\"\"\"
     try:
         data = request.get_json()
         with open(ALERTES_FILE, 'w') as f:
@@ -735,7 +753,7 @@ if __name__ == '__main__':
 """
 
 # ============================================================
-# ÉCRITURE DES FICHIERS
+# ÉCRITURE
 # ============================================================
 with open(BASE_DIR + 'index.html', 'w', encoding='utf-8') as f:
     f.write(HTML_CONTENT)
