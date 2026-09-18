@@ -10,13 +10,13 @@ C'est pourquoi je vous propose un système complet et robuste de surveillance de
 
 <table>
   <tr>
-    <td align="center"><img src="assets/1.jpeg" alt="SHT31" width="400"/><br><i>Capteur SHT31</i></td>
-    <td align="center"><img src="assets/2.jpg" alt="NAS" width="400"/><br><i>NAS</i></td>
+    <td align="center"><img src="assets/1.jpeg" alt="SHT31" width="300"/><br><i>Capteur SHT31</i></td>
+    <td align="center"><img src="assets/2.jpg" alt="NAS" width="300"/><br><i>NAS</i></td>
+    <td align="center"><img src="assets/3.jpg" alt="Prototype" width="300"/><br><i>Prototype</i></td>
   </tr>
   <tr>
-    <td align="center"><img src="assets/3.jpg" alt="Prototype" width="400"/><br><i>Prototype</i></td>
-    <td align="center"><img src="assets/4.png" alt="Interface" width="400"/><br><i>Interface Web Basique</i></td>
-    <td align="center"><img src="assets/5.png" alt="Interface" width="400"/><br><i>Interface Web Avancée</i></td> 
+    <td align="center" colspan="1"><img src="assets/4.png" alt="Interface Basique" width="300"/><br><i>Interface Web Basique</i></td>
+    <td align="center" colspan="2"><img src="assets/5.png" alt="Interface Avancée" width="600"/><br><i>Interface Web Avancée</i></td>
   </tr>
 </table>
 
