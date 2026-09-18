@@ -1,0 +1,18 @@
+# Fichiers de sauvegarde
+*.bak
+*.bak2
+*.bak3
+
+# Fichiers temporaires
+*.tmp
+*.swp
+*~
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environnements virtuels
+venv/
+.venv/
