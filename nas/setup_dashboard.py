@@ -57,7 +57,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             padding: 12px;
             font-size: 13px;
             transition: all 0.3s ease;
-            min-width: 900px; /* Empêche l'écrasement total */
+            /* Pas de min-width : on laisse le CSS gérer */
         }
 
         /* Header */
@@ -89,7 +89,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             padding: 8px 14px; border-radius: 5px;
             font-weight: bold; font-size: 1.1em; white-space: nowrap;
         }
-        .ambiance .chart { width: 100%; max-width: 100%; height: 180px; }
+        .ambiance .chart { width: 100%; max-width: 100%; height: 180px; overflow: hidden; }
 
         /* ============================================= */
         /* MODE COMPLET : grille fixe 3 colonnes         */
@@ -211,7 +211,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         /* ============================================= */
         /* RESPONSIVE (mobile)                           */
         /* ============================================= */
-        @media (max-width: 900px) {
+        @media (max-width: 600px) {
             body { min-width: auto; }
             body.mode-full .ambiance {
                 grid-template-columns: 1fr;
@@ -686,6 +686,12 @@ HTML_CONTENT = """<!DOCTYPE html>
         // ============================================================
         // INIT
         // ============================================================
+
+        // Forcer Chart.js à se redimensionner quand la fenêtre change de taille
+        window.addEventListener('resize', () => {
+            if (chart) chart.resize();
+        });
+
         initThemes();
         initColorPickers();
         renderDisks();
