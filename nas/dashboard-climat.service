@@ -1,5 +1,5 @@
 [Unit]
-Description=Dashboard Web Monitoring Climatique
+Description=Dashboard Web ploufNAS
 After=network.target
 
 [Service]
