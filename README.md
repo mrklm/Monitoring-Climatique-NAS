@@ -1,4 +1,4 @@
-# 🌡️ Monitoring Climatique NAS
+# 💧 PloufNAS
 
 Un NAS, comme tout ordinateur, possède des capteurs de température mais pas de capteur d'humidité !
 
