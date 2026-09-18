@@ -64,30 +64,30 @@ C'est pourquoi je vous propose un système complet et robuste de surveillance de
 
 ### Étape 1 : Configuration Arduino
 
-1. Installe les bibliothèques suivantes via le gestionnaire de bibliothèques de l'IDE Arduino :
+1. Installez les bibliothèques suivantes via le gestionnaire de bibliothèques de l'IDE Arduino :
    - `LiquidCrystal I2C` (par Frank de Brabander)
    - `SHT31` (par Rob Tillaart)
-2. Téléverse le code situé dans `arduino/sht31_nas_monitor.ino`.
-3. Ouvre le moniteur série à **9600 bauds** pour vérifier que les données `DATA,Temp,Hum` s'affichent.
+2. Téléversez le code situé dans `arduino/sht31_nas_monitor.ino`.
+3. Ouvrez le moniteur série à **9600 bauds** pour vérifier que les données `DATA,Temp,Hum` s'affichent.
 
 ### Étape 2 : Préparation du NAS (OpenMediaVault)
 
-1. Crée un dossier partagé nommé `monitoring` sur ton volume de stockage principal via l'interface OMV.
-2. Note le chemin réel de ce dossier. Tu peux le trouver via l'interface OMV ou en tapant `lsblk -f` dans le terminal.
+1. Créez un dossier partagé nommé `monitoring` sur votre volume de stockage principal via l'interface OMV.
+2. Notez le chemin réel de ce dossier. Vous pouvez le trouver via l'interface OMV ou en tapant `lsblk -f` dans le terminal.
 
 ### Étape 3 : Règle Udev (Port Série Fixe)
 
 Pour éviter que le nom du port Arduino (`/dev/ttyUSB0`) ne change au redémarrage :
 
-1. Copie le fichier `nas/99-arduino-nas.rules` dans `/etc/udev/rules.d/` sur le NAS.
-2. Recharge les règles et redémarre le service udev :
+1. Copiez le fichier `nas/99-arduino-nas.rules` dans `/etc/udev/rules.d/` sur le NAS.
+2. Rechargez les règles et redémarrez le service udev :
 
    ```bash
    sudo udevadm control --reload-rules
    sudo udevadm trigger
    ```
 
-3. Vérifie que le symlink a bien été créé :
+3. Vérifiez que le symlink a bien été créé :
 
    ```bash
    ls -l /dev/arduino_nas
@@ -95,7 +95,7 @@ Pour éviter que le nom du port Arduino (`/dev/ttyUSB0`) ne change au redémarra
 
    → Doit afficher un lien vers `/dev/ttyUSB0` (ou `ttyACM0`).
 
-> 💡 Si le symlink n'apparaît pas, débranche/rebranche l'Arduino et relance `sudo udevadm trigger`.
+> 💡 Si le symlink n'apparaît pas, débranchez/rebranchez l'Arduino et relancez `sudo udevadm trigger`.
 
 ---
 
@@ -107,19 +107,19 @@ Le projet utilise **ntfy** pour l'envoi des notifications. Nous allons l'auto-h�
 
 Dans l'interface web OMV :
 
-1. **Système → omv-extras** : cocher le dépôt **Docker repo**, enregistrer.
-2. **Système → Plugins** : installer `openmediavault-compose`.
+1. **Système → omv-extras** : cochez le dépôt **Docker repo**, enregistrez.
+2. **Système → Plugins** : installez `openmediavault-compose`.
 3. **Services → Compose → Paramètres** :
-   - **Compose Files** : sélectionner un dossier partagé (ex. `docker-compose`)
-   - **Data** : sélectionner un dossier partagé (ex. `docker-data`)
-   - **Docker storage** : sélectionner un dossier partagé (ex. `docker`)
-   - Enregistrer et appliquer.
+   - **Compose Files** : sélectionnez un dossier partagé (ex. `docker-compose`)
+   - **Data** : sélectionnez un dossier partagé (ex. `docker-data`)
+   - **Docker storage** : sélectionnez un dossier partagé (ex. `docker`)
+   - Enregistrez et appliquez.
 
 > 💡 Il faut **trois dossiers partagés distincts** pour que le plugin Compose fonctionne correctement.
 
 #### 4.2 — Création du conteneur ntfy
 
-Aller dans **Services → Compose → Fichiers → Ajouter** :
+Allez dans **Services → Compose → Fichiers → Ajouter** :
 
 - **Nom** : `ntfy`
 - **Contenu** :
@@ -140,16 +140,16 @@ services:
     restart: unless-stopped
 ```
 
-Enregistrer, puis aller dans **Services → Compose → Services** et démarrer `ntfy`.
+Enregistrez, puis allez dans **Services → Compose → Services** et démarrez `ntfy`.
 
 #### 4.3 — Configuration du téléphone
 
-1. Installer l'application **ntfy** :
+1. Installez l'application **ntfy** :
    - [Android (Play Store)](https://play.google.com/store/apps/details?id=io.heckel.ntfy)
    - [Android (F-Droid)](https://f-droid.org/packages/io.heckel.ntfy/)
    - [iOS (App Store)](https://apps.apple.com/app/ntfy/id1625396347)
-2. Dans l'app, ajouter un serveur personnalisé : `http://IP-DU-NAS:8080`
-3. S'abonner à un topic, par exemple `mon-nas-climat-alerte`.
+2. Dans l'app, ajoutez un serveur personnalisé : `http://IP-DU-NAS:8080`
+3. Abonnez-vous à un topic, par exemple `mon-nas-climat-alerte`.
 
 > ⚠️ **IMPORTANT — Choisissez votre propre topic !**
 >
@@ -177,7 +177,7 @@ curl -d "Test alerte climat" http://localhost:8080/VOTRE-TOPIC
 
 ### Étape 5 : Déploiement des scripts sur le volume de stockage
 
-**1. Trouver l'UUID de votre volume :**
+**1. Trouvez l'UUID de votre volume :**
 
 ```bash
 lsblk -f
@@ -185,15 +185,15 @@ lsblk -f
 
 Repérez la ligne correspondant à votre disque/RAID, et copiez la valeur dans la colonne `UUID`.
 
-**2. Copier les scripts au bon endroit :**
+**2. Copiez les scripts au bon endroit :**
 
 ```bash
 # Créer le dossier monitoring sur le volume
 sudo mkdir -p /srv/dev-disk-by-uuid-VOTRE_UUID/monitoring
 
 # Copier les scripts depuis le repo cloné
-sudo cp ~/Monitoring-Climatique-NAS/nas/monitor_climat.py \
-        ~/Monitoring-Climatique-NAS/nas/setup_dashboard.py \
+sudo cp ~/PloufNAS/nas/monitor_climat.py \
+        ~/PloufNAS/nas/setup_dashboard.py \
         /srv/dev-disk-by-uuid-VOTRE_UUID/monitoring/
 
 # Générer dashboard.py
@@ -204,7 +204,7 @@ sudo python3 setup_dashboard.py
 ls -la
 ```
 
-**3. Personnaliser `monitor_climat.py` :**
+**3. Personnalisez `monitor_climat.py` :**
 
 Éditez le fichier et adaptez la section **CONFIGURATION** en haut :
 
@@ -239,7 +239,7 @@ sudo pip3 install pyserial flask requests
 
 ### Étape 7 : Test manuel avant systemd
 
-**Toujours tester à la main avant d'activer les services** — sinon on débogue à l'aveugle.
+**Testez toujours à la main avant d'activer les services** — sinon vous déboguez à l'aveugle.
 
 ```bash
 cd /srv/dev-disk-by-uuid-VOTRE_UUID/monitoring/
@@ -263,8 +263,8 @@ Si tout fonctionne → passez à systemd. Sinon → inspectez les erreurs affich
 Les fichiers sont fournis dans `nas/`. Il faut les copier dans `/etc/systemd/system/` :
 
 ```bash
-sudo cp ~/Monitoring-Climatique-NAS/nas/monitor-climat.service /etc/systemd/system/
-sudo cp ~/Monitoring-Climatique-NAS/nas/dashboard-climat.service /etc/systemd/system/
+sudo cp ~/PloufNAS/nas/monitor-climat.service /etc/systemd/system/
+sudo cp ~/PloufNAS/nas/dashboard-climat.service /etc/systemd/system/
 
 # Recharger systemd
 sudo systemctl daemon-reload
@@ -340,18 +340,18 @@ Tous les paramètres sont regroupés en haut de `monitor_climat.py` :
 
 | Symptôme | Piste à explorer |
 |---|---|
-| Port série absent | Vérifier `/dev/ttyUSB*` / `/dev/ttyACM*`, `lsusb`, `dmesg \| tail` |
+| Port série absent | Vérifiez `/dev/ttyUSB*` / `/dev/ttyACM*`, `lsusb`, `dmesg \| tail` |
 | Données illisibles | Baudrate 9600 ? Droits série (`dialout`) ? |
 | CSV vide | `journalctl -u monitor-climat -n 50` |
-| `dashboard.py` introuvable | Relancer `sudo python3 setup_dashboard.py` |
+| `dashboard.py` introuvable | Relancez `sudo python3 setup_dashboard.py` |
 | Dashboard inaccessible | Bonne IP ? Pare-feu OMV ? Port 5000 ouvert ? |
-| Thème ne change pas | Vider le cache navigateur (Ctrl+F5) |
+| Thème ne change pas | Videz le cache navigateur (Ctrl+F5) |
 | Service ne démarre pas | `journalctl -u <monitor-climat\|dashboard-climat> -xe` |
-| Erreur "UUID not found" | Vérifier que `VOTRE_UUID` a bien été remplacé |
+| Erreur "UUID not found" | Vérifiez que `VOTRE_UUID` a bien été remplacé |
 | **Erreur `latin-1 codec can't encode`** | Un emoji est présent dans un **titre** de notification. Les titres ne doivent contenir que de l'ASCII — les emojis sont OK dans le **corps** du message. |
-| Notification ntfy non reçue | Vérifier que le conteneur tourne : `docker ps \| grep ntfy` |
-| ntfy inaccessible | Tester `curl http://localhost:8080/v1/health` sur le NAS |
-| Alerte humidité non déclenchée | Le script lit le buffer série en entier (corrigé). Si le problème persiste, vérifier le code Arduino. |
+| Notification ntfy non reçue | Vérifiez que le conteneur tourne : `docker ps \| grep ntfy` |
+| ntfy inaccessible | Testez `curl http://localhost:8080/v1/health` sur le NAS |
+| Alerte humidité non déclenchée | Le script lit le buffer série en entier (corrigé). Si le problème persiste, vérifiez le code Arduino. |
 
 ---
 
