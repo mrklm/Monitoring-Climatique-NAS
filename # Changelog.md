@@ -8,8 +8,23 @@ et ce projet adhère au [versionnage sémantique](https://semver.org/lang/fr/).
 ## [Non publié]
 
 ### À venir
-- Support pour l'accès distant aux alertes
-- AJout second capteur pour comparaison
+- Support pour l'accès distant aux alertes ?
+- Ajout d'un second capteur pour comparaison ?
+- joindre un fichier STL pour mettre l'arduino dans le compartiement cdrom
+  avec LCD et bouton en facade + capteurs int/ext ?
+
+## [0.3.0] - 2026-09-18
+
+### Modifié
+- **Renommage du projet** : `Monitoring-Climatique-NAS` → **`PloufNAS`**
+- **Titre du dashboard** : « Monitoring Climatique NAS » → « PloufNAS »
+- **Titre du README** et passage au vouvoiement dans toute la documentation
+
+### Ajouté
+- Fichier **`.gitignore`** (exclusion des fichiers `.bak`, `__pycache__`, etc.)
+
+### Supprimé
+- Fichier `nas/monitor_climat.py.bak` (n'avait pas sa place dans le dépôt)
 
 ## [0.2.0] - 2026-09-18
 
@@ -52,6 +67,7 @@ et ce projet adhère au [versionnage sémantique](https://semver.org/lang/fr/).
 - Services systemd pour le démarrage automatique
 - Documentation initiale (README)
 
-[Non publié]: https://github.com/mrklm/Monitoring-Climatique-NAS/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/mrklm/Monitoring-Climatique-NAS/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/mrklm/Monitoring-Climatique-NAS/releases/tag/v0.1.0
+[Non publié]: https://github.com/mrklm/PloufNAS/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/mrklm/PloufNAS/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/mrklm/PloufNAS/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/mrklm/PloufNAS/releases/tag/v0.1.0
