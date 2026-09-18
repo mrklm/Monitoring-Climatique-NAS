@@ -55,7 +55,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         /* Bloc ambiance */
         .ambiance { background-color: var(--panel); padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 20px; }
         .ambiance .nas-icon { text-align: center; }
-        .ambiance .nas-icon img { max-width: 200px; height: auto; }
+        .ambiance .nas-icon img { max-width: 75px; height: auto; }
         .ambiance .values { display: flex; gap: 30px; justify-content: center; align-items: center; }
         .ambiance .values .value { background: var(--accent); color: #fff; padding: 12px 20px; border-radius: 6px; font-weight: bold; font-size: 1.3em; white-space: nowrap; }
         .ambiance .chart { width: 100%; max-width: 100%; }
